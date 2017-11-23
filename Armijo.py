@@ -167,7 +167,5 @@ def metodo_gradiente(funcao, ponto_inicial):
 
 metodo_gradiente(f, (0.5,0.5,0.5,0.5))
 
-g =[1,2,3,4]
-h = [1,1,1,1]
-np.sum(g)
+
 
