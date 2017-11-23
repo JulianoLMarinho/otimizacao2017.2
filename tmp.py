@@ -81,19 +81,28 @@ def secao_aurea(funcao, eps, ro, d):
 
 	# procurar intervalo [a,b]
 	a,s,b=0,ro,2*ro
+	iter = 0
 	while(phi(funcao,b,d) < phi(funcao,s,d)):
 		a,s,b=s,b,2*b
+		iter+=1
+		#print str(phi(funcao,b,d))+ ", "+ str(phi(funcao,s,d))
+		if iter >=50:
+			iter = 0
+			ro=ro*3
+			a,s,b=0,ro,2*ro
+			print "novo ro = " + str(ro)
+		#print "a, s, b = " + str(a)+", "+str(s)+", "+str(b)
 
 	#Procuramos um t*
-	u = a + theta_1*(b-a)
-	v = a + theta_2*(b-a)
-	while((b-a)>epslon):
+	u = a + theta1*(b-a)
+	v = a + theta2*(b-a)
+	while((b-a)>err):
 		if(phi(funcao,u,d) < phi(funcao,v,d)):
 			b,v = v, u
-			u = a + theta_1*(b-a)
+			u = a + theta1*(b-a)
 		else:
 			a,u= u,v
-			v = a + theta_2*(b-a)
+			v = a + theta2*(b-a)
 	t = (u+v)/2
 	return t
 
@@ -102,18 +111,27 @@ def metodo_gradiente(funcao, ponto_inicial):
 	"""Resolve o problema de minimização da função pelo método do gradiente"""
 
 	# PS: FALTA IMPLEMENTAR AINDA
-	print "WARNING: THIS METHOD IS NOT IMPLEMENTED YET!"
+	print "WARNING: ESSE MÉTODO NÃO CONVERGE!"
 	global Xk
 	Xk = ponto_inicial
-	Xant = (0,0)
-
+	Xant = (0,0,0,0)
+	k=0
 	f_i = penalidade_exterior(funcao)
-	print "Funcao irrestrita: " + str(f_i)
+	#print "Funcao irrestrita: " + str(f_i)
 
 	while fabs(Xk[0]-Xant[0]) > err and fabs(Xk[1]-Xant[1]) > err and fabs(Xk[2]-Xant[2]) > err and fabs(Xk[3]-Xant[3]) > err and k < max_iteracoes:
+		print Xk
 		Xant = Xk
 		#Calculo o gradiente da funcao irrestrita e aplico o ponto atual
-		grad = gradiente(f_i)
+		d = [i*-1 for i in gradiente(f_i)]
+		d = [i.subs(w, Xk[0]).subs(x,Xk[1]).subs(y,Xk[2]).subs(z,Xk[3]) for i in d]
+		t = secao_aurea(f_i, err, p, d)
+		print "t* = " + str(t)
+		Xk = (Xk[0] + d[0]*t, Xk[1] + d[1]*t, Xk[2] + d[2]*t, Xk[3] + d[3]*t)
+		k=k+1
+	if(k>=max_iteracoes):
+		print "Interrompido porque o maximo de iteracoes foi atingido."
+	else:
+		print Xk
 
-
-#metodo_gradiente(f, (1,1,1,1))
+metodo_gradiente(f, (0.5,0.5,0.5,0.5))
