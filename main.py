@@ -9,7 +9,7 @@ def df(x):
     return [-30-10*(x[1])-2*(x[2])-3*(x[3]), -10*(x[0])-10-10*x[2]-10*x[3], -2*x[0]-10*x[1]-40-x[3], -3*x[0]-10*x[1]-x[2]-12]
 
 
-def multiEcalarVector(X, e):
+def MEV(X, e):
     Y = []
     for i in range(len(X)):
         Y.append(X[i]*e)
@@ -43,10 +43,10 @@ def MGradiente(Xo):
 
 x1 = [0.3, 0.1, 0.4, 0.12]
 X = [-3.2, -39.0/20, 33.0/2, -29.0/2]
-Xo=[0,0,0,0]
+Xo=[1,1,1,1]
 Y = [30,10,40,12]
 
-MGradiente([-3.1, -39.0/20, 33.0/2, -29.0/2])
+# MGradiente([-3.1, -39.0/20, 33.0/2, -29.0/2])
 # print multiEcalarVector(X, 1)
-# print df(X)
+print df(X)
 # print f(X)
