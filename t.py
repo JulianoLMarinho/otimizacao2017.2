@@ -28,7 +28,7 @@ f = -30 * w - 10 * w * x - 2 * w * y - 3 * w * z - 10 * x - 10 * x * y - 10 * x 
 
 # Criar uma nova funcao f adicionando penalidade
 
-p = 50000000 # fator a ser alterado posteriormente
+p = 100 # fator a ser alterado posteriormente
 p1 = 0.001
 g1 = 33*w + 14*x + 47*y + 11*z - 59
 g2 = -w
@@ -67,12 +67,13 @@ gf8 = z + t*d4
 gf9 = z + t*d4-1
 fi = -30 * (w+t*d1) - 10 * (w+t*d1) * (x + t*d2) - 2 * (w+t*d1) * (y + t*d3) - 3 * (w+t*d1) * (z + t*d4) - 10 * (x + t*d2) - 10 * (x + t*d2) * (y + t*d3) - 10 * (x + t*d2) * (z + t*d4) - 40 * (y + t*d3) - (y + t*d3) * (z + t*d4) - 12 * (z + t*d4)
 fip = fi + p* (S.Max(0,g1)**2 + S.Min(0,g2)**2+S.Max(0,g3)**2+S.Min(0,g4)**2+S.Max(0,g5)**2+S.Min(0,g6)**2+S.Max(0,g7)**2+S.Min(0,g8)**2+S.Max(0,g9)**2)
+
 #
 #
 # k = 0.5*(x-2)**2 + (y-1)**2
 #
 # kfi = 0.5*((x+t*d1)-2)**2 + ((y+t*d2)-1)**2
-
+#
 # print kfi.subs(x,1).subs(y, 0).subs(d1, 3).subs(d2, 1).subs(t, 0)
 
 # print S.diff(h,w).subs(w,0.5).subs(y,0.5).subs(x,0.5).subs(z,0.5)
@@ -159,7 +160,9 @@ def MGradienteA(X, f, armijo):
     df4 = S.diff(f, z).subs(w, Xk[0]).subs(x, Xk[1]).subs(y, Xk[2]).subs(z, Xk[3])
     dFx = [df1, df2, df3, df4]
     e = 0.0001
-    while abs(X[0]-Xk[0]) > e:
+    while (abs(X[2]-Xk[2]) > e) and (abs(X[0]-Xk[0])>e) and (abs(X[3]-Xk[3])>e) and (abs(X[1]-Xk[1])>e):
+        print abs(X[2]-Xk[2])
+        print abs(X[0]-Xk[0])
         dk = MEV(dFx, -1)
         total = MVV(dk, dFx)
         # print "Xk = ", Xk
@@ -194,8 +197,8 @@ B = [-3.0, -39.0/20, 33.0/2, -29.0/2]
 
 # print MEV(Y, -1)
 # Xo = MGradienteA([0,0,0,0], h3, 1)
-X1 = MGradienteA([5,5,5,5], h2, 1)
-# X2 = MGradienteA([0.3,0.3,0.3,0.3], h2, 1)
+X1 = MGradienteA([0.5,0.5,0.5,0.5], h2, 1)
+X2 = MGradienteA([0.55,0.55,0.55,0.55], h2, 1)
 # X4 = MGradienteA([0.5,0.5,0.5,0.5], h2, 1)
 # X5 = MGradienteA([0.6,0.7,0.8,0.9], h2, 1)
 # X6 = MGradienteA([50,100,80,9], h2, 1)
@@ -203,7 +206,7 @@ X1 = MGradienteA([5,5,5,5], h2, 1)
 
 # print h3.subs(w,Xo[0]).subs(x, Xo[1]).subs(y, Xo[2]).subs(z, Xo[3])
 print h2.subs(w,X1[0]).subs(x, X1[1]).subs(y, X1[2]).subs(z, X1[3])
-print freal(X1, 500000)
+# print freal(X1, 500000)
 # print h2.subs(w,X2[0]).subs(x, X2[1]).subs(y, X2[2]).subs(z, X2[3])
 # print h2.subs(w,X4[0]).subs(x, X4[1]).subs(y, X4[2]).subs(z, X4[3])
 # print h2.subs(w,X5[0]).subs(x, X5[1]).subs(y, X5[2]).subs(z, X5[3])
@@ -213,6 +216,11 @@ print freal(X1, 500000)
 # print MVV(t, jj)
 
 j = (11*t**2)/2 - 5.0*t + 3.0/2
+
+# x1 = -3.0, x2=-39.0/20, x3=33.0/2 e x4=-29.0/2
+
+# print h2.subs(w, -3).subs(x,-39.0/20).subs(y, 33.0/2).subs(z, -29.0/2)
+
 
 # print j
 # print j.subs()
