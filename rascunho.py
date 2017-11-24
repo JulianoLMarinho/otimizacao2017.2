@@ -66,7 +66,7 @@ def resolve_funcao(funcao, X):
 
 def pontos_criticos(funcao):
     """@return Pontos críticos da Função"""
-    return S.solve(gradienteV(funcao),[w,x,y,z])
+    return S.solve(gradiente(funcao),[w,x,y,z])
 
 def classificar_pontos_criticos(funcao):
     """"@return True: Imprime se é ponto de sela, mínimo ou máximo. | False: se ocorreu algum erro """
@@ -185,23 +185,26 @@ def metodo_gradiente(funcao, ponto_inicial, busca):
     t = 1
 
     f_i = penalidade_exterior(funcao, p)
+    # print "Funcao irrestrita: " + str(f_i)
     while fabs(Xk[0]-Xant[0]) > err and fabs(Xk[1]-Xant[1]) > err and fabs(Xk[2]-Xant[2]) > err and fabs(Xk[3]-Xant[3]) > err and k < max_iteracoes:
         Xant = Xk
         #Calculo o gradiente da funcao irrestrita e aplico o ponto atual
+        # grad = gradienteE(f_i, Xk)
+        # d = np.multiply(-1,grad)
         d = [i * -1 for i in gradienteV(f_i)]
         d = [i.subs(w, Xk[0]).subs(x, Xk[1]).subs(y, Xk[2]).subs(z, Xk[3]) for i in d]
-
         if busca=='armijo':
             t = armijo(f_i, d, 0.0001, 0.0001)
         if busca=='aurea':
             t = secao_aurea(f_i, err, 1, d)
-
+        # Xk = soma_vetores(Xk, vetorXescalar(d, t))
         Xk = (Xk[0] + d[0] * t, Xk[1] + d[1] * t, Xk[2] + d[2] * t, Xk[3] + d[3] * t)
         k+=1
-    return Xk
+        # print Xk
+    print "X encontrado: ",Xk
 
-print "Busca de Armijo: ",metodo_gradiente(f, (0.5,0.5,0.5,0.5), 'armijo')
-print "Busca Aurea:     ", metodo_gradiente(f, (0.5,0.5,0.5,0.5), 'aurea')
+metodo_gradiente(f, (0.1,0.1,0.1,0.1), 'armijo')
+metodo_gradiente(f, (0.1,0.1,0.1,0.1), 'aurea')
 
 
 #X encontrado:  [0.572278083897339, 0.357643174333573, 0.673156415717701, 0.315789673432011]
