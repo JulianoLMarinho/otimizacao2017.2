@@ -36,7 +36,7 @@ def metodoGradiente(func, x0):
     t = S.symbols('t')
     gradiente = [S.diff(func,w).subs(w, xk[0]).subs(x,xk[1]).subs(y, xk[2]).subs(z,xk[3]),S.diff(func,x).subs(w, xk[0]).subs(x,xk[1]).subs(y, xk[2]).subs(z,xk[3]),S.diff(func,y).subs(w, xk[0]).subs(x,xk[1]).subs(y, xk[2]).subs(z,xk[3]),S.diff(func,z).subs(w, xk[0]).subs(x,xk[1]).subs(y, xk[2]).subs(z,xk[3])]
     print gradiente
-    while(all(v==0 for v in gradiente)==False and k<=1):
+    while(all(v==0 for v in gradiente)==False and k<=0):
         td = [m*(-1*t) for m in gradiente]
         print "vetor td"
         print td
@@ -45,9 +45,9 @@ def metodoGradiente(func, x0):
         print xktd
         tmp = h.subs(w, xktd[0]).subs(x, xktd[1]).subs(y, xktd[2]).subs(z, xktd[3])
         print "equacao penalizada substituida"
-        print tmp
+        print tmp.subs(t, 3)
         # temos a funcao ja em fi(t).
-
+        k=k+1
 
 
     # p1, p2, p3, p4 = ponto
@@ -65,11 +65,10 @@ def metodoGradiente(func, x0):
 
 #buscaIntervalo(h, [1,0,1,0], [0.5,0.5,0.5,0.5])
 
-metodoGradiente(h, [0,1,0,0])
-"""
+#metodoGradiente(h, [2,2,2,2])
+
 for i in arange(-0.5,2,0.5):
     for j in arange(-0.5, 2,0.5):
         for k in arange(-0.5, 2,0.5):
             for l in arange(-0.5, 2, 0.5):
                 print "X=("+str(i)+","+str(j)+","+str(k)+","+str(l)+")" + "\tf(X) = " +str(f.subs(w,i).subs(x,j).subs(y,k).subs(z,l)) + "\th(X) = " + str(h.subs(w,i).subs(x,j).subs(y,k).subs(z,l))
-"""
