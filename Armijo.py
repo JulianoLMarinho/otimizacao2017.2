@@ -21,23 +21,28 @@ f = -30 * w - 10 * w * x - 2 * w * y - 3 * w * z - 10 * x - 10 * x * y - 10 * x 
 
 # Sejam os dados comuns do problema
 Xk=()
-p = 100
+p = 5000
 err = pow(10,-5)
-max_iteracoes=100
+max_iteracoes=150
+
 
 
 class Report():
     """docstring for ClassName"""
-    def __init__(self, x0, iteracoes, busca, quant_busca, xotimo, fotimo):
+    def __init__(self, x0, iteracoes, busca, quant_busca, xotimo, fotimo, erro):
         self.inicial = x0
         self.iteracoes = iteracoes
         self.busca = busca
         self.busca_iter = quant_busca
         self.xotimo = xotimo
         self.fotimo = fotimo
+        self.erro = erro
     def __str__(self):
-        return str(self.inicial) + ";" + str(self.iteracoes) + ";" + self.busca + ";" + str(self.busca_iter) + ";" + str(self.xotimo) + ";" + str(self.fotimo)
-        
+        output = str(self.inicial) + ";" + str(self.iteracoes) + ";" + self.busca + ";" + str(self.busca_iter) + ";" + str(self.xotimo) + ";" + str(self.fotimo) +";" +str(self.erro)
+        return str(output)
+
+def moduloV(X):
+    return ((X[0]**2)+(X[1]**2)+(X[2]**2)+(X[3]**2))**(1.0/2)
 
 def gradienteV(funcao):
     """@return Gradiente da função"""
@@ -133,7 +138,7 @@ def armijo(funcao, d, gama, eta):
         phi2 = np.multiply(vetorXvetor(gradienteE(f, Xk), d), eta * t) + resolve_funcao(funcao, Xk)
     return t,iter
 
-def secao_aurea(funcao, eps, ro, d):
+def secao_aurea(funcao, erro, ro, d):
     """@return Ponto t a ser utilizado por métodos de otimização irrestrita"""
     theta1 = (3-sqrt(5))/2
     theta2 = 1-theta1
@@ -141,13 +146,15 @@ def secao_aurea(funcao, eps, ro, d):
     # procurar intervalo [a,b]
     a,s,b=0,ro,2*ro
     iter = 0
+    kkk=0
     while(phi(funcao,b,d) < phi(funcao,s,d)):
+        kkk+=1
         a,s,b=s,b,2*b
 
     #Procuramos um t*
     u = a + theta1*(b-a)
     v = a + theta2*(b-a)
-    while((b-a)>err):
+    while((b-a)>erro):
         iter+=1
         if(phi(funcao,u,d) < phi(funcao,v,d)):
             b,v = v, u
@@ -155,6 +162,7 @@ def secao_aurea(funcao, eps, ro, d):
         else:
             a,u= u,v
             v = a + theta2*(b-a)
+            
     t = (u+v)/2
     return t,iter
 
@@ -167,34 +175,54 @@ def metodo_gradiente(funcao, ponto_inicial, busca):
     Xant = (50,50, 50, 50)
     k=0
     t = 1
-
+    erro = (0,0,0,0)
     f_i = penalidade_exterior(funcao, p)
-    while fabs(Xk[0]-Xant[0]) > err and fabs(Xk[1]-Xant[1]) > err and fabs(Xk[2]-Xant[2]) > err and fabs(Xk[3]-Xant[3]) > err and k < max_iteracoes and Xk!=Xant:
+    while (fabs(Xk[0]-Xant[0]) > err or fabs(Xk[1]-Xant[1]) > err or fabs(Xk[2]-Xant[2]) > err or fabs(Xk[3]-Xant[3]) > err) and k < max_iteracoes and Xk!=Xant:
+        # erro = (fabs(Xk[0]-Xant[0]), fabs(Xk[1]-Xant[1]), fabs(Xk[2]-Xant[2]), fabs(Xk[3]-Xant[3]))
+        erro = fabs(moduloV(Xk)-moduloV(Xant))
         Xant = Xk
+        print erro
         #Calculo o gradiente da funcao irrestrita e aplico o ponto atual
         d = [i * -1 for i in gradienteV(f_i)]
         d = [i.subs(w, Xk[0]).subs(x, Xk[1]).subs(y, Xk[2]).subs(z, Xk[3]) for i in d]
 
         if busca=='armijo':
-            t,q = armijo(f_i, d, 0.0001, 0.0001)
+            t,q = armijo(f_i, d, 0.8, 0.25)
         elif busca=='aurea':
-            t,q = secao_aurea(f_i, err, 1, d)
+            t,q = secao_aurea(f_i, 10**(-5), 0.000000000000001, d)
 
         totalBusca+=q
         Xk = (Xk[0] + d[0] * t, Xk[1] + d[1] * t, Xk[2] + d[2] * t, Xk[3] + d[3] * t)
         k+=1
 
-    return Report(ponto_inicial,k,busca,totalBusca,Xk,resolve_funcao(f_i, Xk))
+    return Report(ponto_inicial,k,busca,totalBusca,Xk,resolve_funcao(f_i, Xk), erro)
 
 
 # print metodo_gradiente(f, (0.3,0.3,0.3,0.3), 'armijo')
 # print metodo_gradiente(f, (0.3,0.3,0.3,0.3), 'aurea')
 
-for i in np.arange(0.1,0.6,0.1):
-    for j in np.arange(0.1,0.6,0.1):
-        for k in np.arange(0.1,0.6,0.1):
-            for l in np.arange(0.1,0.6, 0.1):
-                print metodo_gradiente(f, (i,j,k,l), 'armijo')
-                print metodo_gradiente(f, (i,j,k,l), 'aurea')
+arq = open("/home/juliano/Projetos/Otimização/result.csv","w") #Localização deve ser alterada
+arq.write("Xo;Interações.;Busca;Interações da Busca;Opt. Point;Opt. Value; Error\n")
+
+# for i in range(1,10,1):
+#     for j in range(1,10,1):
+#         for k in range(1,10,1):
+#             for l in range(1,10, 1):
+Xo=[[0.5,0.5,0.5,0.5],[0.49,0.49,0.49,0.49],[0.6,0.6,0.6,0.6],[0.5,0.6,0.7,0.4], [0.45,0.36,0.78,0.12], [0.1,0.85,0.59,0.4], [0.7,0.3,0.45,0.96], [0.7,0.6,0.1,0.9], [0.52,0.9,0.7,0.3], [0.9,0.6,0.8,0.4], [0.2,0.3,0.95,0.87]]
+
+for i in Xo:
+    a = str(metodo_gradiente(f, i, 'armijo'))
+    b = str(metodo_gradiente(f, i, 'aurea'))
+    # arq.write(a+"\n")
+    # arq.write( b+"\n")
+    print a
+    print b
+                # arq.write(metodo_gradiente(f, (i,j,k,l), 'aurea')+"\n")
+
+
+# print metodo_gradiente(f, (0.3,0.3,0.3,0.3), "armijo")
+# print metodo_gradiente(f, (0.3,0.3,0.3,0.3), "aurea")
+
+arq.close()
 #X encontrado:  [0.572278083897339, 0.357643174333573, 0.673156415717701, 0.315789673432011]
 #X encontrado:  [0.312229385189642, 0.141697962449498, 0.409984321397889, 0.132884506062719]
