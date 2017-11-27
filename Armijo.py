@@ -18,6 +18,7 @@ import numpy as np
 # Sejam os símbolos da função w,x,y,z e f a função especificada.
 w, x, y, z = S.symbols('w,x,y,z')
 f = -30 * w - 10 * w * x - 2 * w * y - 3 * w * z - 10 * x - 10 * x * y - 10 * x * z - 40 * y - y * z - 12 * z
+regiao = 33*w+14*x+47*y+11*z-59
 
 # Sejam os dados comuns do problema
 Xk=()
@@ -38,7 +39,7 @@ class Report():
         self.fotimo = fotimo
         self.erro = erro
     def __str__(self):
-        output = str(self.inicial) + ";" + str(self.iteracoes) + ";" + self.busca + ";" + str(self.busca_iter) + ";" + str(self.xotimo) + ";" + str(self.fotimo) +";" +str(self.erro)
+        output = str(self.inicial) + ";" + str(self.iteracoes) + ";" + self.busca + ";" + str(self.busca_iter) + ";" + str(self.xotimo[0]) + ";"+ str(self.xotimo[1]) + ";"+ str(self.xotimo[2]) + ";"+ str(self.xotimo[3]) + ";" + str(self.fotimo) +";" +str(self.erro)
         return str(output)
 
 def moduloV(X):
@@ -127,6 +128,7 @@ def phi(funcao, t, d):
 
 
 def armijo(funcao, d, gama, eta):
+    """@return Ponto t a ser utilizado por métodos de otimização irrestrita"""
     t = 1
     phi1 = phi(funcao, t, d)
     iter=0
@@ -178,7 +180,7 @@ def metodo_gradiente(funcao, ponto_inicial, busca):
     erro = (0,0,0,0)
     f_i = penalidade_exterior(funcao, p)
     while (fabs(Xk[0]-Xant[0]) > err or fabs(Xk[1]-Xant[1]) > err or fabs(Xk[2]-Xant[2]) > err or fabs(Xk[3]-Xant[3]) > err) and k < max_iteracoes and Xk!=Xant:
-        # erro = (fabs(Xk[0]-Xant[0]), fabs(Xk[1]-Xant[1]), fabs(Xk[2]-Xant[2]), fabs(Xk[3]-Xant[3]))
+        # O critérios de parada utilizados foram X>erro, k máximo
         erro = fabs(moduloV(Xk)-moduloV(Xant))
         Xant = Xk
         print erro
@@ -189,7 +191,7 @@ def metodo_gradiente(funcao, ponto_inicial, busca):
         if busca=='armijo':
             t,q = armijo(f_i, d, 0.8, 0.25)
         elif busca=='aurea':
-            t,q = secao_aurea(f_i, 10**(-5), 0.000000000000001, d)
+            t,q = secao_aurea(f_i, 10**(-5), 0.000000001, d)
 
         totalBusca+=q
         Xk = (Xk[0] + d[0] * t, Xk[1] + d[1] * t, Xk[2] + d[2] * t, Xk[3] + d[3] * t)
@@ -198,31 +200,52 @@ def metodo_gradiente(funcao, ponto_inicial, busca):
     return Report(ponto_inicial,k,busca,totalBusca,Xk,resolve_funcao(f_i, Xk), erro)
 
 
-# print metodo_gradiente(f, (0.3,0.3,0.3,0.3), 'armijo')
-# print metodo_gradiente(f, (0.3,0.3,0.3,0.3), 'aurea')
-
-arq = open("/home/juliano/Projetos/Otimização/result.csv","w") #Localização deve ser alterada
-arq.write("Xo;Interações.;Busca;Interações da Busca;Opt. Point;Opt. Value; Error\n")
-
-# for i in range(1,10,1):
-#     for j in range(1,10,1):
-#         for k in range(1,10,1):
-#             for l in range(1,10, 1):
-Xo=[[0.5,0.5,0.5,0.5],[0.49,0.49,0.49,0.49],[0.6,0.6,0.6,0.6],[0.5,0.6,0.7,0.4], [0.45,0.36,0.78,0.12], [0.1,0.85,0.59,0.4], [0.7,0.3,0.45,0.96], [0.7,0.6,0.1,0.9], [0.52,0.9,0.7,0.3], [0.9,0.6,0.8,0.4], [0.2,0.3,0.95,0.87]]
-
+arqAu = open("/home/juliano/Projetos/Otimização/result_perto_otimo_aureo.csv","w")#Localização deve ser alterada
+arqAr = open("/home/juliano/Projetos/Otimização/result_perto_otimo_armijo.csv","w")
+arqAu.write("Xo;Interações.;Busca;Interações da Busca;Opt. X1;Opt. X2;Opt. X3;Opt. X4;Opt. Value; Error\n")
+arqAr.write("Xo;Interações.;Busca;Interações da Busca;Opt. X1; Opt. X2;Opt. X3;Opt. X4;Opt. Value; Error\n")
+#
+Xo=[[0.99,0.98,0.02,0.92],[0.92,0.9,0.0,0.95],[0.9,0.9,0.1,0.9],[1.0,1.0,0.0,1.0], [0.999,0.899,0.02,0.92], [0.93,0.88,0.002,0.89], [0.99,0.99,0.11,0.99], [1.0,0.98,0.1,0.9], [0.965,0.9,0.2,1.0], [0.9,0.93,0.0,0.97], [0.928,0.999,0.0,0.87]]
+#
 for i in Xo:
     a = str(metodo_gradiente(f, i, 'armijo'))
     b = str(metodo_gradiente(f, i, 'aurea'))
-    # arq.write(a+"\n")
-    # arq.write( b+"\n")
+    arqAr.write(a+"\n")
+    arqAu.write( b+"\n")
     print a
     print b
-                # arq.write(metodo_gradiente(f, (i,j,k,l), 'aurea')+"\n")
+# #
+arqAr.close()
+arqAu.close()
 
+# for i in range(0,11,1):
+#     for j in range(0, 11, 1):
+#         for k in range(0, 11, 1):
+#             for l in range(0, 11, 1):
+#                 if(regiao.subs(w,i/10.0).subs(x,j/10.0).subs(y,k/10.0).subs(z,l/10.0))<=0:
+#                     arq.write(str([i,j,k,l])+";"
+#                               +str(f.subs(w,i/10.0).subs(x,j/10.0).subs(y,k/10.0).subs(z,l/10.0))+";"
+#                               +str(regiao.subs(w,i/10.0).subs(x,j/10.0).subs(y,k/10.0).subs(z,l/10.0))+"\n")
+#                     print str([i,j,k,l])
+# arq.close()
+# a = str(metodo_gradiente(f, [10/10.0,10/10.0,10/10.0,10/10.0], 'armijo'))
+# b = str(metodo_gradiente(f, [10/10.0,10/10.0,10/10.0,10/10.0], 'aurea'))
+# # arq.write(a+"\n")
+# # arq.write( b+"\n")
+# print a
+# print b
+# print penalidade_exterior(f,9999999999999999999999999).subs(z,0.296).subs(x,0.292).subs(y,0.704)
 
-# print metodo_gradiente(f, (0.3,0.3,0.3,0.3), "armijo")
-# print metodo_gradiente(f, (0.3,0.3,0.3,0.3), "aurea")
-
-arq.close()
-#X encontrado:  [0.572278083897339, 0.357643174333573, 0.673156415717701, 0.315789673432011]
-#X encontrado:  [0.312229385189642, 0.141697962449498, 0.409984321397889, 0.132884506062719]
+# for i in arange(0.00,1.00, 0.01):
+#     if (regiao.subs(w, 0.0).subs(x, 0.0).subs(y, i).subs(z, 0.0) <= 0):
+#         arq.write(str([1.0, 1.0, i, 1.0]) + ";"
+#                   +str(f.subs(w, 0.0).subs(x, 0.0).subs(y, i).subs(z, 0.0))+";"
+#                   +str(regiao.subs(w, 0.0).subs(x, 0.0).subs(y, i).subs(z, 0.0))+"\n")
+#
+# arq.close()
+# a = str(metodo_gradiente(f, [1.0,1.0,0.2,1.0], 'armijo'))
+# b = str(metodo_gradiente(f, [1.0,1.0,0.2,1.0], 'aurea'))
+# # arq.write(a+"\n")
+# # arq.write( b+"\n")
+# print a
+# print b
